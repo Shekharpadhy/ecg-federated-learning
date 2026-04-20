@@ -105,15 +105,18 @@ The simulation proves that 5 "hospitals" training in isolation can match a model
 
 | Component | Description | Technology |
 |-----------|-------------|------------|
-| Data pipeline | WFDB loading, beat extraction, NPZ caching | NumPy, WFDB |
-| Local model | Fully-connected network (200 → 64 → 32 → N classes) | PyTorch |
-| Federated training | Manual FedAvg loop — no Ray dependency | Pure Python + NumPy |
-| Explainability | GradientExplainer on trained model | SHAP |
-| Dashboard | One-click training, upload & analyse | Streamlit |
+| Data sources | MIT-BIH (10 records, ~21,849 beats) + optional PTB-XL | WFDB, NumPy |
+| Preprocessing | Beat extraction, NPZ caching, rare-class filtering | NumPy, scikit-learn |
+| Local model | FC network (200→64→32→N) **or** 1D CNN (3×Conv1d + AdaptiveAvgPool) | PyTorch |
+| Federated training | Manual FedAvg — 5 clients, 3 rounds, pure Python | Python + NumPy |
+| Explainability | GradientExplainer with ECG-anatomy-annotated dual-panel plot | SHAP |
+| Dashboard | Live training stream, real-time charts, upload & analyse | Streamlit |
 
 ### System Architecture
 
 ![System Architecture](results/system_architecture.png)
+
+The diagram above shows the full end-to-end pipeline: data flows from MIT-BIH (and optionally PTB-XL) through preprocessing into 5 equal client partitions. Each round, hospitals train locally and send only model weights to the FedAvg aggregator — raw patient data never moves. After 3 rounds the global model is evaluated and explained via SHAP, with all outputs surfaced in the Streamlit dashboard.
 
 ---
 
